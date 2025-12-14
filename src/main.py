@@ -1,23 +1,17 @@
 import os
 import cv2
 import time
-import numpy as np
-
+from style_transfer import set_initial_model, select_style, preprocess_frame, apply_style, postprocess_frame, blend_frames
+from utils import save_img, generate_output
 # =========================
 # 1. Load deep learning model
 # =========================
 # Ruta del directorio base del proyecto
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+current_style_name = 'Starry Night'
+current_model_path = os.path.join(BASE_DIR, 'dnn_models', 'starry_night_eccv.t7')
 
-MODEL_PATH = os.path.join(BASE_DIR, 'dnn_models', 'candy.t7')
-
-net = cv2.dnn.readNet(MODEL_PATH)
-
-backend = cv2.dnn.DNN_BACKEND_OPENCV
-target = cv2.dnn.DNN_TARGET_CPU
-
-net.setPreferableBackend(backend)
-net.setPreferableTarget(target)
+net = set_initial_model(current_model_path)
 
 # =========================
 # 2. Open camera
@@ -38,71 +32,44 @@ INPUT_H = 320
 
 alpha = 1
 
-MEAN = (103.939, 116.779, 123.68)
-
 # =========================
 # 4. Real-time loop
 # =========================
 while True:
     loop_start = time.time()
 
-    ret, frame = cap.read()
-    if not ret:
-        break
+    frame = cap.read()[1]
 
-    # ---- Resize (KEY for FPS) ----
-    frame = cv2.resize(frame, (INPUT_W, INPUT_H))
-
-    # ---- Pre-processing ----
-    blob = cv2.dnn.blobFromImage(
-        frame,
-        scalefactor=1.0,
-        size=(INPUT_W, INPUT_H),
-        mean=MEAN,
-        swapRB=False,
-        crop=False
-    )
-
-    net.setInput(blob)
-
-    # ---- Inference ----
-    stylized_frame = net.forward()
-
-    # ---- Post-processing ----
-    stylized_frame = stylized_frame.reshape(3, stylized_frame.shape[2], stylized_frame.shape[3])
-    stylized_frame[0] += MEAN[0]
-    stylized_frame[1] += MEAN[1]
-    stylized_frame[2] += MEAN[2]
-
-    stylized_frame = stylized_frame.transpose(1, 2, 0)
-    stylized_frame = stylized_frame.clip(0, 255).astype("uint8")
-    stylized_frame = np.ascontiguousarray(stylized_frame)
-
-    out = cv2.addWeighted(frame, 1-alpha, stylized_frame, alpha, 0)
+    frame, blob = preprocess_frame(frame, (INPUT_W, INPUT_H))
+    stylized = apply_style(net, blob)
+    stylized = postprocess_frame(stylized)
+    final = blend_frames(frame, stylized, alpha)
 
     # ---- FPS ----
     fps = 1.0 / (time.time() - loop_start)
 
-    cv2.putText(
-        out,
-        f"FPS: {fps:.2f}",
-        (10, 20),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.5,
-        (0, 255, 0),
-        1
-    )
-
-    cv2.putText(out, f"Style: La Muse", (10, 40),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-    cv2.putText(out, f"Intensity: {alpha:.2f}", (10, 60),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+    # ---- Output ---
+    out = generate_output(final, fps, current_style_name, alpha)
 
     # ---- Display ----
     cv2.imshow("Style Transfer - La Muse", out)
 
-    if cv2.waitKey(1) == 27:
+    key = cv2.waitKey(1) & 0xFF
+    if key == 27:
         break
+    elif key == ord('+'):
+        alpha = min(1, alpha + 0.05)
+    elif key == ord('-'):
+        alpha = max(0, alpha - 0.05)
+    elif key == ord('s'):
+        save_dir = os.path.join(BASE_DIR, 'images')
+        save_img(save_dir, final)
+    else:
+        style_info = select_style(key)
+        if style_info is not None:
+            current_style_name, current_model_path = style_info
+            net = cv2.dnn.readNet(current_model_path)
+            print(f'[INFO] Changed style to {current_style_name}')
 
 # =========================
 # 5. Cleanup
