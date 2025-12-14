@@ -8,7 +8,8 @@ import numpy as np
 # =========================
 # Ruta del directorio base del proyecto
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, 'dnn_models', 'la_muse.t7')
+
+MODEL_PATH = os.path.join(BASE_DIR, 'dnn_models', 'candy.t7')
 
 net = cv2.dnn.readNet(MODEL_PATH)
 
@@ -35,7 +36,7 @@ print('[INFO] Press ESC to quit')
 INPUT_W = 512
 INPUT_H = 320
 
-alpha = 0.5
+alpha = 1
 
 MEAN = (103.939, 116.779, 123.68)
 
