@@ -9,6 +9,11 @@ STYLES = {
     ord('2'): ("Starry Night", os.path.join(BASE_PATH, 'dnn_models', 'starry_night.t7')),
     ord('3'): ("Mosaic", os.path.join(BASE_PATH, 'dnn_models', 'mosaic.t7')),
     ord('4'): ("The Scream", os.path.join(BASE_PATH, 'dnn_models', 'the_scream.t7')),
+    ord('5'): ("Composition", os.path.join(BASE_PATH, 'dnn_models', 'composition_vii.t7')),
+    ord('6'): ("Udnie", os.path.join(BASE_PATH, 'dnn_models', 'udnie.t7')),
+    ord('7'): ("The Wave", os.path.join(BASE_PATH, 'dnn_models', 'the_wave.t7')),
+    ord('8'): ("Candy", os.path.join(BASE_PATH, 'dnn_models', 'candy.t7')),
+    ord('9'): ("Feathers", os.path.join(BASE_PATH, 'dnn_models', 'feathers.t7')),
 }
 
 
