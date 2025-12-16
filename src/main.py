@@ -5,7 +5,7 @@ from style_transfer import set_initial_model, select_style, preprocess_frame, ap
 from utils import save_img, generate_output
 # =========================
 # 1. Load deep learning model
-# =========================
+# =========================1
 # Ruta del directorio base del proyecto
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 current_style_name = 'Starry Night'
@@ -67,9 +67,16 @@ while True:
     else:
         style_info = select_style(key)
         if style_info is not None:
-            current_style_name, current_model_path = style_info
-            net = cv2.dnn.readNet(current_model_path)
-            print(f'[INFO] Changed style to {current_style_name}')
+            new_style_name, new_model_path = style_info
+            if new_style_name != current_style_name:
+
+                current_style_name = new_style_name
+                current_model_path = new_model_path
+
+                net = cv2.dnn.readNet(current_model_path)
+                alpha = 1
+
+                print(f'[INFO] Changed style to {current_style_name}')
 
 # =========================
 # 5. Cleanup

@@ -26,6 +26,7 @@ def set_initial_model(path):
 
     return net
 
+
 def select_style(key):
     return STYLES.get(key, None)
 
